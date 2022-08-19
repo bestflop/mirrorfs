@@ -18,7 +18,7 @@ from lxml import etree
 from cfscrape import create_scraper
 from bs4 import BeautifulSoup
 from base64 import standard_b64encode
-from bot import LOGGER, UPTOBOX_TOKEN, CRYPT, APPDRIVE_EMAIL, APPDRIVE_PASS
+from bot import LOGGER, UPTOBOX_TOKEN, CRYPT, APPDRIVE_EMAIL, APPDRIVE_PASS, fsmail, fspass
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.ext_utils.bot_utils import is_gdtot_link, is_appdrive_link
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
@@ -35,6 +35,8 @@ def direct_link_generator(link: str):
         return zippy_share(link)
     elif 'yadi.sk' in link or 'disk.yandex.com' in link:
         return yandex_disk(link)
+    elif 'https://www.fshare.vn/file' in link:
+        return fshare(link)  
     elif 'mediafire.com' in link:
         return mediafire(link)
     elif 'uptobox.com' in link:
@@ -107,7 +109,73 @@ def yandex_disk(url: str) -> str:
         return rget(api.format(link)).json()['href']
     except KeyError:
         raise DirectDownloadLinkException("ERROR: File not found/Download limit reached\n")
+   
+      load = {
+    "user_email": fsmail,
+    "password": fspass,
+    "app_key": "dMnqMMZMUnN5YpvKENaEhdQQ5jxDqddt"
+  }
+  
 
+  header = {
+      
+      "content-type": "application/json",
+      #"Fshare-User-Agent": "vmenpn-R81X9Q",
+     "User-Agent": "vmenpn-R81X9Q",
+       "Pragma": "no-cache",
+      "Accept": "*/*"
+  }
+    
+      
+
+  r1 = session.post('https://api.fshare.vn/api/user/login',
+                    json=load, headers=header)
+  res1 = r1.json()
+  msg = res1['msg']
+  print(msg)
+  if 'Login successfully!' in r1.text:
+    token = res1['token']
+    session_id = res1['session_id']
+    load1 = {
+      "url": input,
+      "password": "",
+      "token": token,
+      "zipflag": "0"
+    }
+    header1 = {
+      
+      "content-type": "application/json",
+      "Fshare-User-Agent": "vmenpn-R81X9Q",
+     #"User-Agent": "vmenpn-R81X9Q",
+       "Pragma": "no-cache",
+      "Accept": "*/*",
+      "Cookie": "session_id="+session_id
+  }
+    r2 = session.post('https://api.fshare.vn/api/session/download',
+                    json=load1, headers=header1)
+    res2 = r2.json()
+    print(res2)
+    link = res2['location']
+    r3 = session.get('https://api.fshare.vn/api/user/logout', headers=header1)
+    r3 = r3.json()
+    print(r3)
+    load = {
+      "u":link
+    }
+    header = {
+            "user-agent": UA,
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "content-type": "application/x-www-form-urlencoded",
+            "accept-Language": "en-GB,en;q=0.9,en-US;q=0.8"
+
+    }
+    r4 = session.post('https://www.shorturl.at/shortener.php',
+                          data=load, headers=header)
+    soup = BeautifulSoup(r4.text, 'html.parser')
+    tk = soup.find("input", {"id": "shortenurl"})
+    dl_url = tk.get('value')
+    return dl_url
+  
 def uptobox(url: str) -> str:
     """ Uptobox direct link generator
     based on https://github.com/jovanzers/WinTenCermin """
