@@ -237,6 +237,14 @@ else:
     sleep(1.5)
 
 try:
+  fsmail = getConfig('fsmail')
+  fspass = getConfig('fspass')
+except:
+        log_info("FSHARE  chưa có acc!!")                
+else:
+    sleep(1.5)    
+    
+try:
     BASE_URL = getConfig('BASE_URL_OF_BOT').rstrip("/")
     if len(BASE_URL) == 0:
         raise KeyError
