@@ -7,7 +7,24 @@
 from https://github.com/AvinashReddy3108/PaperplaneExtended . I hereby take no credit of the following code other
 than the modifications. See https://github.com/AvinashReddy3108/PaperplaneExtended/commits/master/userbot/modules/direct_links.py
 for original authorship. """
-
+import re, requests, string
+import logging
+import requests
+import time
+import string
+import random
+import asyncio
+import re
+import base64
+import json
+import sys
+import urllib3
+import http.client
+import os
+import ssl
+from parsel import Selector
+from bs4 import BeautifulSoup
+import lxml.html as html
 from requests import get as rget, head as rhead, post as rpost, Session as rsession
 from re import findall as re_findall, sub as re_sub, match as re_match, search as re_search
 from base64 import b64decode
@@ -109,8 +126,8 @@ def yandex_disk(url: str) -> str:
         return rget(api.format(link)).json()['href']
     except KeyError:
         raise DirectDownloadLinkException("ERROR: File not found/Download limit reached\n")
-   
-      load = {
+def fshare(url: str) -> str:   
+  load = {
     "user_email": fsmail,
     "password": fspass,
     "app_key": "dMnqMMZMUnN5YpvKENaEhdQQ5jxDqddt"
